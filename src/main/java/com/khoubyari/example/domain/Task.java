@@ -22,10 +22,10 @@ public class Task {
     @Column( nullable = false)
     private String taskObjectStoreURL;
 
-    @Column( nullable = false)
+    @Column
     private String creationTime;
 
-    @Column()
+    @Column
     private String lastUpdateTime;
 
     public long getTaskId() {

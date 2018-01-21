@@ -37,8 +37,8 @@ public class TaskService {
         return taskRepository.findOne(taskId);
     }
 
-    public void updateTask(Task taskId) {
-        taskRepository.save(taskId);
+    public void updateTask(Task task) {
+        taskRepository.save(task);
     }
 
     public void deleteTask(Long id) {
