@@ -149,7 +149,7 @@ JSONAssert.assertEquals(
 
 
     /*
-    ******************************
+     ******************************
      */
 
     private long getResourceIdFromUrl(String locationUrl) {
