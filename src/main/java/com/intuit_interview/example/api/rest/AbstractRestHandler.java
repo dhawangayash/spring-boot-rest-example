@@ -1,8 +1,11 @@
 package com.intuit_interview.example.api.rest;
 
 import com.intuit_interview.example.domain.RestErrorInfo;
+import com.intuit_interview.example.domain.Task;
+import com.intuit_interview.example.domain.User;
 import com.intuit_interview.example.exception.DataFormatException;
 import com.intuit_interview.example.exception.ResourceNotFoundException;
+import com.intuit_interview.example.exception.UserEmailNotValidException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -14,6 +17,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class is meant to be extended by all REST resource "controllers".
@@ -27,6 +32,11 @@ public abstract class AbstractRestHandler implements ApplicationEventPublisherAw
 
     protected static final String  DEFAULT_PAGE_SIZE = "100";
     protected static final String DEFAULT_PAGE_NUM = "0";
+
+    // source: https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
+    private static final String EMAIL_PATTERN =
+            "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+                    + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(DataFormatException.class)
@@ -55,10 +65,31 @@ public abstract class AbstractRestHandler implements ApplicationEventPublisherAw
 
     //todo: replace with exception mapping
     public static <T> T checkResourceFound(final T resource) {
-        if (resource == null) {
+        if (resource == null)
             throw new ResourceNotFoundException("resource not found");
-        }
+
+        if (resource instanceof User)
+            isValidUser((User)resource);
+
+        if (resource instanceof Task)
+            isValidTask((Task)resource);
+
         return resource;
     }
 
+
+    private static boolean isValidUser(User user) {
+
+        Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+        Matcher matcher = pattern.matcher(user.getEmailId());
+
+        if (!(matcher.matches()))
+            throw new UserEmailNotValidException();
+
+        return true;
+    }
+
+    private static boolean isValidTask(Task task) {
+        return true;
+    }
 }
