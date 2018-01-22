@@ -4,6 +4,7 @@ import com.intuit_interview.example.domain.RestErrorInfo;
 import com.intuit_interview.example.domain.Task;
 import com.intuit_interview.example.domain.User;
 import com.intuit_interview.example.exception.DataFormatException;
+import com.intuit_interview.example.exception.PhoneNumberNotValidException;
 import com.intuit_interview.example.exception.ResourceNotFoundException;
 import com.intuit_interview.example.exception.UserEmailNotValidException;
 import org.slf4j.Logger;
@@ -37,6 +38,14 @@ public abstract class AbstractRestHandler implements ApplicationEventPublisherAw
     private static final String EMAIL_PATTERN =
             "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
                     + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+
+    // YYYY-MM-DD_HH:MM format for time
+    private static final String DATE_FORMATTER =
+            "^([1-9][0-9][0-9][0-9])\\-(0[0-9]|1[0-2])\\-(0[0-9]|1[0-9]|2[0-9]|3[0-1])_([0-9]|0[0-9]|1[0-9]|2[0-3])\\:([0-5][0-9])$";
+
+    // Phone number formatter (999)-999-9999
+    private static final String PHONE_NUMBER =
+            "^(\\([1-9][0-9][0-9]\\))\\-([0-9][0-9][0-9])\\-([0-9][0-9][0-9][0-9])$";
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(DataFormatException.class)
@@ -85,6 +94,13 @@ public abstract class AbstractRestHandler implements ApplicationEventPublisherAw
 
         if (!(matcher.matches()))
             throw new UserEmailNotValidException();
+
+
+        pattern = Pattern.compile(PHONE_NUMBER);
+        matcher = pattern.matcher(user.getPhone());
+
+        if (!(matcher.matches()))
+            throw new PhoneNumberNotValidException();
 
         return true;
     }

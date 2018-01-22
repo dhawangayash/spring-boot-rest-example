@@ -3,6 +3,7 @@ package com.intuit_interview.example.api.rest;
 
 import com.intuit_interview.example.domain.User;
 import com.intuit_interview.example.exception.DataFormatException;
+import com.intuit_interview.example.exception.PhoneNumberNotValidException;
 import com.intuit_interview.example.exception.UserEmailNotValidException;
 import com.intuit_interview.example.service.UserService;
 import io.swagger.annotations.Api;
@@ -17,6 +18,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
+
+/**
+ * Created by dhawangayash on 1/21/18.
+ */
+
 
 @RestController
 @RequestMapping(value = "/taskmanager/v1/user")
@@ -42,6 +48,9 @@ public class UserController extends AbstractRestHandler {
         } catch (UserEmailNotValidException  ex) {
             res.setHeader("Errors", "invalid email id");
             res.setStatus(BAD_REQUEST.value());
+        } catch (PhoneNumberNotValidException ex) {
+            res.setHeader("Errors", "invalid phone number");
+            res.setStatus(HttpStatus.BAD_REQUEST.value());
         }
     }
 
@@ -74,12 +83,16 @@ public class UserController extends AbstractRestHandler {
                            HttpServletRequest req, HttpServletResponse res) {
         try {
             checkResourceFound(this.userService.getUser(userId));
+            this.userService.updateUser(user);
             res.setStatus(HttpStatus.NO_CONTENT.value());
-        } catch (UserEmailNotValidException ex) {
+        } catch (UserEmailNotValidException  ex) {
+            res.setHeader("Errors", "invalid email id");
+            res.setStatus(HttpStatus.BAD_REQUEST.value());
+        } catch (PhoneNumberNotValidException ex) {
+            res.setHeader("Errors", "invalid phone number");
             res.setStatus(HttpStatus.BAD_REQUEST.value());
         }
         if (userId != user.getUserId()) throw new DataFormatException("UserID doesn't match");
-        this.userService.updateUser(user);
     }
 
 }
