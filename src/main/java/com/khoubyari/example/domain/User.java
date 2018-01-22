@@ -4,6 +4,9 @@ import javax.persistence.*;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "user")
@@ -12,8 +15,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class User {
 
     @Id
-    @GeneratedValue
-    private long userId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "user_id")
+    private long id;
 
     @Column(nullable = false)
     private String emailId;
@@ -24,12 +28,24 @@ public class User {
     @Column
     private String address;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name="user_id", referencedColumnName = "user_id")
+    private Set<Task> tasks = new HashSet<>();
+
+    public Set<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(Set<Task> tasks) {
+        this.tasks = tasks;
+    }
+
     public long getUserId() {
-        return userId;
+        return id;
     }
 
     public void setUserId(long userId) {
-        this.userId = userId;
+        this.id = userId;
     }
 
     public String getEmailId() {
@@ -56,13 +72,18 @@ public class User {
         this.address = address;
     }
 
+
     @Override
     public String toString() {
-        return "UserRepository{" +
-                "userId=" + userId +
+        String tasks = this.tasks != null? getTasks().stream().map(x -> x.toString())
+                .collect(Collectors.joining(", ")) : "NO TASKS";
+
+        return "User{" +
+                "userId=" + id +
                 ", emailId='" + emailId + '\'' +
                 ", phone='" + phone + '\'' +
                 ", address='" + address + '\'' +
+                ", tasks=" + tasks +
                 '}';
     }
 }

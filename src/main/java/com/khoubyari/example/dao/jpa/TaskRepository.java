@@ -16,7 +16,7 @@ import java.util.List;
 public interface TaskRepository  extends PagingAndSortingRepository<Task, Long>  {
     Page<Task> findAll(Pageable pageable);
 
-    List<Task> findByTaskId(Long taskId);
+    // List<Task> findByTaskId(Long taskId);
 
 /*
     @Query("select * from user_table where uid = ?0")

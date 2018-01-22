@@ -13,46 +13,68 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Task {
 
     @Id
-    @GeneratedValue
-    private long taskId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "task_id")
+    private long id;
 
-    @Column
-    private long userId;
+//    @ManyToOne
+//    @JoinColumn(name = "user_id", nullable = false)
+//    @JsonBackReference
+//    private User user;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(long user_id) {
+        this.user_id = user_id;
+    }
+
+    @Column(name = "user_id")
+    private long user_id;
 
     @Column( nullable = false)
     private String taskObjectStoreURL;
 
     @Column
-    private String creationTime;
+    private String dueTime;
 
     @Column
-    private String lastUpdateTime;
+    private String reminderTime;
 
     public long getTaskId() {
-        return taskId;
+        return id;
     }
 
     public void setTaskId(long taskId) {
-        this.taskId = taskId;
+        this.id = taskId;
     }
 
 //    @ManyToOne
 //    @JoinColumn(name = "user")
-    public long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(long userId) {
-        this.userId = userId;
-    }
+//    public User getUserId() {
+//        return user;
+//    }
+//
+//    public void setUserId(User user) {
+//        this.user = user;
+//    }
 
     public Task() {}
 
-    public Task(long userId, String taskObjectStoreURL, String creationTime, String lastUpdateTime) {
-        this.userId = userId;
+    public Task(User userId, String taskObjectStoreURL, String creationTime, String lastUpdateTime) {
+//        this.user = userId;
         this.taskObjectStoreURL = taskObjectStoreURL;
-        this.creationTime = creationTime;
-        this.lastUpdateTime = lastUpdateTime;
+        this.dueTime = creationTime;
+        this.reminderTime = lastUpdateTime;
     }
 
     public String getTaskObjectStoreURL() {
@@ -63,30 +85,30 @@ public class Task {
         this.taskObjectStoreURL = taskObjectStoreURL;
     }
 
-    public String getCreationTime() {
-        return creationTime;
+    public String getDueTime() {
+        return dueTime;
     }
 
-    public void setCreationTime(String creationTime) {
-        this.creationTime = creationTime;
+    public void setDueTime(String dueTime) {
+        this.dueTime = dueTime;
     }
 
-    public String getLastUpdateTime() {
-        return lastUpdateTime;
+    public String getReminderTime() {
+        return reminderTime;
     }
 
-    public void setLastUpdateTime(String lastUpdateTime) {
-        this.lastUpdateTime = lastUpdateTime;
+    public void setReminderTime(String reminderTime) {
+        this.reminderTime = reminderTime;
     }
 
     @Override
     public String toString() {
         return "Task{" +
-                "taskId=" + taskId +
-                ", userId=" + userId +
+                "taskId=" + id +
+//                ", userId=" + user +
                 ", taskObjectStoreURL='" + taskObjectStoreURL + '\'' +
-                ", creationTime='" + creationTime + '\'' +
-                ", lastUpdateTime='" + lastUpdateTime + '\'' +
+                ", dueTime='" + dueTime + '\'' +
+                ", reminderTime='" + reminderTime + '\'' +
                 '}';
     }
 
