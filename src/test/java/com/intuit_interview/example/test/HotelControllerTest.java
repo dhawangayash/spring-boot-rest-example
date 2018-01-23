@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intuit_interview.example.Application;
 import com.intuit_interview.example.api.rest.HotelController;
 import com.intuit_interview.example.domain.Hotel;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +27,8 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.Random;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -99,11 +99,11 @@ public class HotelControllerTest {
 
         //todo: you can test the 404 error body too.
 
-/*
-JSONAssert.assertEquals(
-  "{foo: 'bar', baz: 'qux'}",
-  JSONObject.fromObject("{foo: 'bar', baz: 'xyzzy'}"));
- */
+        /*
+        JSONAssert.assertEquals(
+          "{foo: 'bar', baz: 'qux'}",
+          JSONObject.fromObject("{foo: 'bar', baz: 'xyzzy'}"));
+         */
     }
 
     @Test
