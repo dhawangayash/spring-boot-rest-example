@@ -22,11 +22,11 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.HashSet;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Created by dhawangayash on 1/22/18.
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 public class UserControllerTest {
 
-    private static final String RESOURCE_LOCATION_PATTERN = "http://localhost/taskmanager/v1/user/1";
+    private static final String RESOURCE_LOCATION_PATTERN = "http://localhost/taskmanager/v1/user/";
 
     @InjectMocks
     UserController controller;
@@ -55,7 +55,7 @@ public class UserControllerTest {
 
 
     @Test
-    public void shouldCreateRetrieveDelete() throws Exception {
+    public void shouldCreateRetrieve() throws Exception {
         User user = mockUser("shouldCreateRetrieveDelete");
         byte[] jsonUser = toJson(user);
 
@@ -65,12 +65,54 @@ public class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(redirectedUrl(RESOURCE_LOCATION_PATTERN))
+                .andExpect(redirectedUrl(RESOURCE_LOCATION_PATTERN + "1"))
                 .andReturn();
-        
+
+        String[] parts = res.getResponse().getRedirectedUrl().split("/");
+        long userId = Long.valueOf(parts[parts.length - 1]);
+
+        // Read user
+        mvc.perform(get("/taskmanager/v1/user/" + userId)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId", is((int) userId)))
+                .andExpect(jsonPath("$.address", is(user.getAddress())))
+                .andExpect(jsonPath("$.emailId", is(user.getEmailId())))
+                .andExpect(jsonPath("$.phone", is(user.getPhone())));
+
+    }
+
+    @Test
+    public void shouldCreateTaskAndRetrieveTask() throws Exception {
+        User user = mockUser("shouldCreateTaskAndRetrieveTask");
+        byte[] jsonUser = toJson(user);
+
+        // create user
+        MvcResult res = mvc.perform(
+                post("/taskmanager/v1/user")
+                        .content(jsonUser)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(redirectedUrl(RESOURCE_LOCATION_PATTERN + "2"))
+                .andReturn();
+
+        String[] parts = res.getResponse().getRedirectedUrl().split("/");
+        long userId = Long.valueOf(parts[parts.length - 1]);
+
+        // Read user
+        mvc.perform(get("/taskmanager/v1/user/" + userId)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId", is((int) userId)))
+                .andExpect(jsonPath("$.address", is(user.getAddress())))
+                .andExpect(jsonPath("$.emailId", is(user.getEmailId())))
+                .andExpect(jsonPath("$.phone", is(user.getPhone())));
+
 
 
     }
+
 
     private User mockUser(String prefix) {
         User u = new User();
