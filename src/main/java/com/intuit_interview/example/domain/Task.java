@@ -110,7 +110,7 @@ public class Task {
     public String toString() {
         return "Task{" +
                 "taskId=" + id +
-//                ", userId=" + user +
+                ", userId=" + user_id +
                 ", taskObjectStoreURL='" + taskObjectStoreURL + '\'' +
                 ", dueTime='" + dueTime + '\'' +
                 ", reminderTime='" + reminderTime + '\'' +

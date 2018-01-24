@@ -34,6 +34,7 @@ public abstract class AbstractRestHandler implements ApplicationEventPublisherAw
     protected static final String  DEFAULT_PAGE_SIZE = "100";
     protected static final String DEFAULT_PAGE_NUM = "0";
 
+    // Is a valid email_id: abc@domain.com
     // source: https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
     private static final String EMAIL_PATTERN =
             "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
