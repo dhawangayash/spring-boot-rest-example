@@ -1,0 +1,1089 @@
+diff --git a/README.md b/README.md
+index c97b341..e3b9b31 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+-# Spring Boot "Microservice" Example Project
++#Task creation example using  Spring Boot "Microservice" Example Project
+ 
+-This is a sample Java / Maven / Spring Boot (version 1.5.6) application that can be used as a starter for creating a microservice complete with built-in health check, metrics and much more. I hope it helps you.
++This uses Java / Maven / Spring Boot (version 1.5.6) application which is a starter for creating a microservice complete with built-in health check, metrics and much more.
+ 
+ ## How to Run 
+ 
+@@ -8,12 +8,10 @@ This application is packaged as a war which has Tomcat 8 embedded. No Tomcat or
+ 
+ * Clone this repository 
+ * Make sure you are using JDK 1.8 and Maven 3.x
+-* You can build the project and run the tests by running ```mvn clean package```
+-* Once successfully built, you can run the service by one of these two methods:
++* You can build the project and run the tests by running ```mvn clean install -U```
++* Once successfully built, you can run the service by:
+ ```
+-        java -jar -Dspring.profiles.active=test target/spring-boot-rest-example-0.4.0.war
+-or
+-        mvn spring-boot:run -Drun.arguments="spring.profiles.active=test"
++java -jar -Dspring.profiles.active=test target/spring-boot-rest-example-0.4.0.war
+ ```
+ * Check the stdout or boot_example.log file to make sure no exceptions are thrown
+ 
+@@ -24,56 +22,27 @@ Once the application runs you should see something like this
+ 2017-08-30 17:31:23.097  INFO 19387 --- [           main] com.khoubyari.example.Application        : Started Application in 22.285 seconds (JVM running for 23.032)
+ ```
+ 
+-## About the Service
+-
+-The service is just a simple hotel review REST service. It uses an in-memory database (H2) to store the data. You can also do with a relational database like MySQL or PostgreSQL. If your database connection properties work, you can call some REST endpoints defined in ```com.khoubyari.example.api.rest.hotelController``` on **port 8090**. (see below)
+-
+-More interestingly, you can start calling some of the operational endpoints (see full list below) like ```/metrics``` and ```/health``` (these are available on **port 8091**)
+-
+-You can use this sample service to understand the conventions and configurations that allow you to create a DB-backed RESTful service. Once you understand and get comfortable with the sample app you can add your own services following the same patterns as the sample service.
+- 
+-Here is what this little application demonstrates: 
+-
+-* Full integration with the latest **Spring** Framework: inversion of control, dependency injection, etc.
+-* Packaging as a single war with embedded container (tomcat 8): No need to install a container separately on the host just run using the ``java -jar`` command
+-* Demonstrates how to set up healthcheck, metrics, info, environment, etc. endpoints automatically on a configured port. Inject your own health / metrics info with a few lines of code.
+-* Writing a RESTful service using annotation: supports both XML and JSON request / response; simply use desired ``Accept`` header in your request
+-* Exception mapping from application exceptions to the right HTTP response with exception details in the body
+-* *Spring Data* Integration with JPA/Hibernate with just a few lines of configuration and familiar annotations. 
+-* Automatic CRUD functionality against the data source using Spring *Repository* pattern
+-* Demonstrates MockMVC test framework with associated libraries
+-* All APIs are "self-documented" by Swagger2 using annotations 
+-
+-Here are some endpoints you can call:
+-
+-### Get information about system health, configurations, etc.
++### Create a task for a userId
+ 
+ ```
+-http://localhost:8091/env
+-http://localhost:8091/health
+-http://localhost:8091/info
+-http://localhost:8091/metrics
+-```
+-
+-### Create a hotel resource
+-
+-```
+-POST /example/v1/hotels
++POST /taskmanager/v1/tasks
+ Accept: application/json
+ Content-Type: application/json
+ 
+ {
+-"name" : "Beds R Us",
+-"description" : "Very basic, small rooms but clean",
+-"city" : "Santa Ana",
+-"rating" : 2
++"dueTime" : "string",
++"id" : 0,
++"reminderTime" : "string",
++"taskId" : 0,
++"taskObjectStoreURL": "string",
++"user_id": 0
+ }
+ 
+ RESPONSE: HTTP 201 (Created)
+ Location header: http://localhost:8090/example/v1/hotels/1
+ ```
+ 
+-### Retrieve a paginated list of hotels
++### Retrieve a paginated list of tasks
+ 
+ ```
+ http://localhost:8090/example/v1/hotels?page=0&size=10
+@@ -82,7 +51,7 @@ Response: HTTP 200
+ Content: paginated list 
+ ```
+ 
+-### Update a hotel resource
++### Update a task resource
+ 
+ ```
+ PUT /example/v1/hotels/1
+@@ -160,7 +129,7 @@ spring:
+       ddl-auto: update # todo: in non-dev environments, comment this out:
+ 
+ 
+-hotel.service:
++task.service:
+   name: 'test profile:'
+ ```
+ 
+@@ -171,21 +140,3 @@ hotel.service:
+ or
+         mvn spring-boot:run -Drun.arguments="spring.profiles.active=mysql"
+ ```
+-
+-# Attaching to the app remotely from your IDE
+-
+-Run the service with these command line options:
+-
+-```
+-mvn spring-boot:run -Drun.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
+-or
+-java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -Dspring.profiles.active=test -Ddebug -jar target/spring-boot-rest-example-0.4.0.war
+-```
+-and then you can connect to it remotely using your IDE. For example, from IntelliJ You have to add remote debug configuration: Edit configuration -> Remote.
+-
+-# Questions and Comments: khoubyari@gmail.com
+-
+-
+-
+-
+-
+diff --git a/pom.xml b/pom.xml
+index 32aa7ae..8c09b9a 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -16,7 +16,7 @@
+ 	</parent>
+ 
+ 	<properties>
+-		<start-class>com.intuit_interview.example.Application</start-class>
++		<start-class>com.dhawan.example.Application</start-class>
+ 	</properties>
+ 
+ 	<dependencies>
+diff --git a/src/main/java/com/intuit_interview/example/Application.java b/src/main/java/com/dhawan/example/Application.java
+similarity index 84%
+rename from src/main/java/com/intuit_interview/example/Application.java
+rename to src/main/java/com/dhawan/example/Application.java
+index 0c6499d..b6f5fe1 100644
+--- a/src/main/java/com/intuit_interview/example/Application.java
++++ b/src/main/java/com/dhawan/example/Application.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example;
++package com.dhawan.example;
+ 
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+@@ -18,8 +18,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+ @SpringBootApplication
+ @Configuration
+ @EnableAutoConfiguration  // Sprint Boot Auto Configuration
+-@ComponentScan(basePackages = "com.intuit_interview.example")
+-@EnableJpaRepositories("com.intuit_interview.example.dao.jpa") // To segregate MongoDB and JPA repositories. Otherwise not needed.
++@ComponentScan(basePackages = "com.dhawan.example")
++@EnableJpaRepositories("com.dhawan.example.dao.jpa") // To segregate MongoDB and JPA repositories. Otherwise not needed.
+ public class Application extends SpringBootServletInitializer {
+ 
+     private static final Class<Application> applicationClass = Application.class;
+diff --git a/src/main/java/com/intuit_interview/example/RestControllerAspect.java b/src/main/java/com/dhawan/example/RestControllerAspect.java
+similarity index 79%
+rename from src/main/java/com/intuit_interview/example/RestControllerAspect.java
+rename to src/main/java/com/dhawan/example/RestControllerAspect.java
+index 91ab30e..993977c 100644
+--- a/src/main/java/com/intuit_interview/example/RestControllerAspect.java
++++ b/src/main/java/com/dhawan/example/RestControllerAspect.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example;
++package com.dhawan.example;
+ 
+ import org.aspectj.lang.JoinPoint;
+ import org.aspectj.lang.annotation.Aspect;
+@@ -13,7 +13,7 @@ public class RestControllerAspect {
+ 
+     protected final Logger log = LoggerFactory.getLogger(this.getClass());
+ 
+-    @Before("execution(public * com.intuit_interview.example.api.rest.*Controller.*(..))")
++    @Before("execution(public * com.dhawan.example.api.rest.*Controller.*(..))")
+     public void logBeforeRestCall(JoinPoint pjp) throws Throwable {
+         log.info(":::::AOP Before REST call:::::" + pjp);
+     }
+diff --git a/src/main/java/com/intuit_interview/example/api/rest/AbstractRestHandler.java b/src/main/java/com/dhawan/example/api/rest/AbstractRestHandler.java
+similarity index 88%
+rename from src/main/java/com/intuit_interview/example/api/rest/AbstractRestHandler.java
+rename to src/main/java/com/dhawan/example/api/rest/AbstractRestHandler.java
+index 7bbb963..3ac0f11 100644
+--- a/src/main/java/com/intuit_interview/example/api/rest/AbstractRestHandler.java
++++ b/src/main/java/com/dhawan/example/api/rest/AbstractRestHandler.java
+@@ -1,12 +1,12 @@
+-package com.intuit_interview.example.api.rest;
+-
+-import com.intuit_interview.example.domain.RestErrorInfo;
+-import com.intuit_interview.example.domain.Task;
+-import com.intuit_interview.example.domain.User;
+-import com.intuit_interview.example.exception.DataFormatException;
+-import com.intuit_interview.example.exception.PhoneNumberNotValidException;
+-import com.intuit_interview.example.exception.ResourceNotFoundException;
+-import com.intuit_interview.example.exception.UserEmailNotValidException;
++package com.dhawan.example.api.rest;
++
++import com.dhawan.example.domain.RestErrorInfo;
++import com.dhawan.example.domain.Task;
++import com.dhawan.example.domain.User;
++import com.dhawan.example.exception.DataFormatException;
++import com.dhawan.example.exception.PhoneNumberNotValidException;
++import com.dhawan.example.exception.ResourceNotFoundException;
++import com.dhawan.example.exception.UserEmailNotValidException;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.springframework.context.ApplicationEventPublisher;
+diff --git a/src/main/java/com/intuit_interview/example/api/rest/TaskController.java b/src/main/java/com/dhawan/example/api/rest/TaskController.java
+similarity index 95%
+rename from src/main/java/com/intuit_interview/example/api/rest/TaskController.java
+rename to src/main/java/com/dhawan/example/api/rest/TaskController.java
+index eda2a7b..21d8aa7 100644
+--- a/src/main/java/com/intuit_interview/example/api/rest/TaskController.java
++++ b/src/main/java/com/dhawan/example/api/rest/TaskController.java
+@@ -1,9 +1,9 @@
+-package com.intuit_interview.example.api.rest;
++package com.dhawan.example.api.rest;
+ 
+ 
+-import com.intuit_interview.example.domain.Task;
+-import com.intuit_interview.example.exception.DataFormatException;
+-import com.intuit_interview.example.service.TaskService;
++import com.dhawan.example.domain.Task;
++import com.dhawan.example.exception.DataFormatException;
++import com.dhawan.example.service.TaskService;
+ import io.swagger.annotations.Api;
+ import io.swagger.annotations.ApiOperation;
+ import io.swagger.annotations.ApiParam;
+diff --git a/src/main/java/com/intuit_interview/example/api/rest/UserController.java b/src/main/java/com/dhawan/example/api/rest/UserController.java
+similarity index 90%
+rename from src/main/java/com/intuit_interview/example/api/rest/UserController.java
+rename to src/main/java/com/dhawan/example/api/rest/UserController.java
+index 841f51d..567706b 100644
+--- a/src/main/java/com/intuit_interview/example/api/rest/UserController.java
++++ b/src/main/java/com/dhawan/example/api/rest/UserController.java
+@@ -1,11 +1,11 @@
+-package com.intuit_interview.example.api.rest;
++package com.dhawan.example.api.rest;
+ 
+ 
+-import com.intuit_interview.example.domain.User;
+-import com.intuit_interview.example.exception.DataFormatException;
+-import com.intuit_interview.example.exception.PhoneNumberNotValidException;
+-import com.intuit_interview.example.exception.UserEmailNotValidException;
+-import com.intuit_interview.example.service.UserService;
++import com.dhawan.example.domain.User;
++import com.dhawan.example.exception.DataFormatException;
++import com.dhawan.example.exception.PhoneNumberNotValidException;
++import com.dhawan.example.exception.UserEmailNotValidException;
++import com.dhawan.example.service.UserService;
+ import io.swagger.annotations.Api;
+ import io.swagger.annotations.ApiOperation;
+ import io.swagger.annotations.ApiParam;
+diff --git a/src/main/java/com/intuit_interview/example/api/rest/docs/SwaggerConfig.java b/src/main/java/com/dhawan/example/api/rest/docs/SwaggerConfig.java
+similarity index 92%
+rename from src/main/java/com/intuit_interview/example/api/rest/docs/SwaggerConfig.java
+rename to src/main/java/com/dhawan/example/api/rest/docs/SwaggerConfig.java
+index 88eb579..6cb23da 100644
+--- a/src/main/java/com/intuit_interview/example/api/rest/docs/SwaggerConfig.java
++++ b/src/main/java/com/dhawan/example/api/rest/docs/SwaggerConfig.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example.api.rest.docs;
++package com.dhawan.example.api.rest.docs;
+ 
+ import com.google.common.base.Predicates;
+ 
+@@ -17,7 +17,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
+ 
+ @Configuration
+ @EnableSwagger2
+-@ComponentScan("com.intuit_interview.example.api.rest")
++@ComponentScan("com.dhawan.example.api.rest")
+ public class SwaggerConfig {
+ 
+ 
+diff --git a/src/main/java/com/intuit_interview/example/dao/jpa/TaskObjectRepositoryCustom.java b/src/main/java/com/dhawan/example/dao/jpa/TaskObjectRepositoryCustom.java
+similarity index 54%
+rename from src/main/java/com/intuit_interview/example/dao/jpa/TaskObjectRepositoryCustom.java
+rename to src/main/java/com/dhawan/example/dao/jpa/TaskObjectRepositoryCustom.java
+index 07550d3..c2daf4a 100644
+--- a/src/main/java/com/intuit_interview/example/dao/jpa/TaskObjectRepositoryCustom.java
++++ b/src/main/java/com/dhawan/example/dao/jpa/TaskObjectRepositoryCustom.java
+@@ -1,6 +1,6 @@
+-package com.intuit_interview.example.dao.jpa;
++package com.dhawan.example.dao.jpa;
+ 
+-import com.intuit_interview.example.domain.Task;
++import com.dhawan.example.domain.Task;
+ 
+ import java.util.List;
+ 
+diff --git a/src/main/java/com/intuit_interview/example/dao/jpa/TaskRepository.java b/src/main/java/com/dhawan/example/dao/jpa/TaskRepository.java
+similarity index 83%
+rename from src/main/java/com/intuit_interview/example/dao/jpa/TaskRepository.java
+rename to src/main/java/com/dhawan/example/dao/jpa/TaskRepository.java
+index 9eeb172..1165a7d 100644
+--- a/src/main/java/com/intuit_interview/example/dao/jpa/TaskRepository.java
++++ b/src/main/java/com/dhawan/example/dao/jpa/TaskRepository.java
+@@ -1,7 +1,7 @@
+-package com.intuit_interview.example.dao.jpa;
++package com.dhawan.example.dao.jpa;
+ 
+ 
+-import com.intuit_interview.example.domain.Task;
++import com.dhawan.example.domain.Task;
+ import org.springframework.data.domain.Page;
+ import org.springframework.data.domain.Pageable;
+ import org.springframework.data.repository.PagingAndSortingRepository;
+diff --git a/src/main/java/com/intuit_interview/example/dao/jpa/UserRepository.java b/src/main/java/com/dhawan/example/dao/jpa/UserRepository.java
+similarity index 70%
+rename from src/main/java/com/intuit_interview/example/dao/jpa/UserRepository.java
+rename to src/main/java/com/dhawan/example/dao/jpa/UserRepository.java
+index 066e68c..5905dde 100644
+--- a/src/main/java/com/intuit_interview/example/dao/jpa/UserRepository.java
++++ b/src/main/java/com/dhawan/example/dao/jpa/UserRepository.java
+@@ -1,7 +1,7 @@
+-package com.intuit_interview.example.dao.jpa;
++package com.dhawan.example.dao.jpa;
+ 
+ 
+-import com.intuit_interview.example.domain.User;
++import com.dhawan.example.domain.User;
+ import org.springframework.data.repository.CrudRepository;
+ 
+ 
+diff --git a/src/main/java/com/intuit_interview/example/domain/RestErrorInfo.java b/src/main/java/com/dhawan/example/domain/RestErrorInfo.java
+similarity index 89%
+rename from src/main/java/com/intuit_interview/example/domain/RestErrorInfo.java
+rename to src/main/java/com/dhawan/example/domain/RestErrorInfo.java
+index 4495e9e..c86357d 100644
+--- a/src/main/java/com/intuit_interview/example/domain/RestErrorInfo.java
++++ b/src/main/java/com/dhawan/example/domain/RestErrorInfo.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example.domain;
++package com.dhawan.example.domain;
+ 
+ import javax.xml.bind.annotation.XmlRootElement;
+ 
+diff --git a/src/main/java/com/intuit_interview/example/domain/Task.java b/src/main/java/com/dhawan/example/domain/Task.java
+similarity index 98%
+rename from src/main/java/com/intuit_interview/example/domain/Task.java
+rename to src/main/java/com/dhawan/example/domain/Task.java
+index f05041c..c42bd03 100644
+--- a/src/main/java/com/intuit_interview/example/domain/Task.java
++++ b/src/main/java/com/dhawan/example/domain/Task.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example.domain;
++package com.dhawan.example.domain;
+ 
+ 
+ import javax.persistence.*;
+diff --git a/src/main/java/com/intuit_interview/example/domain/User.java b/src/main/java/com/dhawan/example/domain/User.java
+similarity index 97%
+rename from src/main/java/com/intuit_interview/example/domain/User.java
+rename to src/main/java/com/dhawan/example/domain/User.java
+index b23c439..0638079 100644
+--- a/src/main/java/com/intuit_interview/example/domain/User.java
++++ b/src/main/java/com/dhawan/example/domain/User.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example.domain;
++package com.dhawan.example.domain;
+ 
+ import javax.persistence.*;
+ import javax.xml.bind.annotation.XmlAccessType;
+diff --git a/src/main/java/com/intuit_interview/example/exception/DataFormatException.java b/src/main/java/com/dhawan/example/exception/DataFormatException.java
+similarity index 89%
+rename from src/main/java/com/intuit_interview/example/exception/DataFormatException.java
+rename to src/main/java/com/dhawan/example/exception/DataFormatException.java
+index a0314a6..39f063c 100644
+--- a/src/main/java/com/intuit_interview/example/exception/DataFormatException.java
++++ b/src/main/java/com/dhawan/example/exception/DataFormatException.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example.exception;
++package com.dhawan.example.exception;
+ 
+ /**
+  * for HTTP 400 errors
+diff --git a/src/main/java/com/intuit_interview/example/exception/PhoneNumberNotValidException.java b/src/main/java/com/dhawan/example/exception/PhoneNumberNotValidException.java
+similarity index 90%
+rename from src/main/java/com/intuit_interview/example/exception/PhoneNumberNotValidException.java
+rename to src/main/java/com/dhawan/example/exception/PhoneNumberNotValidException.java
+index 8114936..51a4b9c 100644
+--- a/src/main/java/com/intuit_interview/example/exception/PhoneNumberNotValidException.java
++++ b/src/main/java/com/dhawan/example/exception/PhoneNumberNotValidException.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example.exception;
++package com.dhawan.example.exception;
+ 
+ /**
+  * Created by dhawangayash on 1/21/18.
+diff --git a/src/main/java/com/intuit_interview/example/exception/ResourceNotFoundException.java b/src/main/java/com/dhawan/example/exception/ResourceNotFoundException.java
+similarity index 90%
+rename from src/main/java/com/intuit_interview/example/exception/ResourceNotFoundException.java
+rename to src/main/java/com/dhawan/example/exception/ResourceNotFoundException.java
+index 226fedf..95f4c47 100644
+--- a/src/main/java/com/intuit_interview/example/exception/ResourceNotFoundException.java
++++ b/src/main/java/com/dhawan/example/exception/ResourceNotFoundException.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example.exception;
++package com.dhawan.example.exception;
+ 
+ /**
+  * For HTTP 404 errros
+diff --git a/src/main/java/com/intuit_interview/example/exception/UserEmailNotValidException.java b/src/main/java/com/dhawan/example/exception/UserEmailNotValidException.java
+similarity index 90%
+rename from src/main/java/com/intuit_interview/example/exception/UserEmailNotValidException.java
+rename to src/main/java/com/dhawan/example/exception/UserEmailNotValidException.java
+index a8e44ba..0869e92 100644
+--- a/src/main/java/com/intuit_interview/example/exception/UserEmailNotValidException.java
++++ b/src/main/java/com/dhawan/example/exception/UserEmailNotValidException.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example.exception;
++package com.dhawan.example.exception;
+ 
+ /**
+  * Created by dhawangayash on 1/21/18.
+diff --git a/src/main/java/com/intuit_interview/example/service/ServiceProperties.java b/src/main/java/com/dhawan/example/service/ServiceProperties.java
+similarity index 80%
+rename from src/main/java/com/intuit_interview/example/service/ServiceProperties.java
+rename to src/main/java/com/dhawan/example/service/ServiceProperties.java
+index a52c556..7d08be7 100644
+--- a/src/main/java/com/intuit_interview/example/service/ServiceProperties.java
++++ b/src/main/java/com/dhawan/example/service/ServiceProperties.java
+@@ -1,4 +1,4 @@
+-package com.intuit_interview.example.service;
++package com.dhawan.example.service;
+ 
+ import org.springframework.boot.context.properties.ConfigurationProperties;
+ import org.springframework.stereotype.Component;
+@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
+ /*
+  * demonstrates how service-specific properties can be injected
+  */
+-@ConfigurationProperties(prefix = "hotel.service", ignoreUnknownFields = false)
++@ConfigurationProperties(prefix = "task.service", ignoreUnknownFields = false)
+ @Component
+ public class ServiceProperties {
+ 
+diff --git a/src/main/java/com/intuit_interview/example/service/TaskService.java b/src/main/java/com/dhawan/example/service/TaskService.java
+similarity index 89%
+rename from src/main/java/com/intuit_interview/example/service/TaskService.java
+rename to src/main/java/com/dhawan/example/service/TaskService.java
+index 7d2f43a..e866a9f 100644
+--- a/src/main/java/com/intuit_interview/example/service/TaskService.java
++++ b/src/main/java/com/dhawan/example/service/TaskService.java
+@@ -1,7 +1,7 @@
+-package com.intuit_interview.example.service;
++package com.dhawan.example.service;
+ 
+-import com.intuit_interview.example.dao.jpa.TaskRepository;
+-import com.intuit_interview.example.domain.Task;
++import com.dhawan.example.dao.jpa.TaskRepository;
++import com.dhawan.example.domain.Task;
+ import org.slf4j.LoggerFactory;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.actuate.metrics.CounterService;
+diff --git a/src/main/java/com/intuit_interview/example/service/UserService.java b/src/main/java/com/dhawan/example/service/UserService.java
+similarity index 86%
+rename from src/main/java/com/intuit_interview/example/service/UserService.java
+rename to src/main/java/com/dhawan/example/service/UserService.java
+index f83a121..c830002 100644
+--- a/src/main/java/com/intuit_interview/example/service/UserService.java
++++ b/src/main/java/com/dhawan/example/service/UserService.java
+@@ -1,7 +1,7 @@
+-package com.intuit_interview.example.service;
++package com.dhawan.example.service;
+ 
+-import com.intuit_interview.example.dao.jpa.UserRepository;
+-import com.intuit_interview.example.domain.User;
++import com.dhawan.example.dao.jpa.UserRepository;
++import com.dhawan.example.domain.User;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.springframework.beans.factory.annotation.Autowired;
+diff --git a/src/main/java/com/intuit_interview/example/api/rest/HotelController.java b/src/main/java/com/intuit_interview/example/api/rest/HotelController.java
+deleted file mode 100644
+index 3ac02f8..0000000
+--- a/src/main/java/com/intuit_interview/example/api/rest/HotelController.java
++++ /dev/null
+@@ -1,104 +0,0 @@
+-package com.intuit_interview.example.api.rest;
+-
+-import io.swagger.annotations.Api;
+-import io.swagger.annotations.ApiOperation;
+-import io.swagger.annotations.ApiParam;
+-
+-import com.intuit_interview.example.domain.Hotel;
+-import com.intuit_interview.example.exception.DataFormatException;
+-import com.intuit_interview.example.service.HotelService;
+-
+-import org.springframework.beans.factory.annotation.Autowired;
+-import org.springframework.data.domain.Page;
+-import org.springframework.http.HttpStatus;
+-import org.springframework.web.bind.annotation.*;
+-
+-import javax.servlet.http.HttpServletRequest;
+-import javax.servlet.http.HttpServletResponse;
+-
+-/*
+- * Demonstrates how to set up RESTful API endpoints using Spring MVC
+- */
+-
+-@RestController
+-@RequestMapping(value = "/example/v1/hotels")
+-@Api(tags = {"hotels"})
+-public class HotelController extends AbstractRestHandler {
+-
+-    @Autowired
+-    private HotelService hotelService;
+-
+-    @RequestMapping(value = "",
+-            method = RequestMethod.POST,
+-            consumes = {"application/json", "application/xml"},
+-            produces = {"application/json", "application/xml"})
+-    @ResponseStatus(HttpStatus.CREATED)
+-    @ApiOperation(value = "Create a hotel resource.",
+-                    notes = "Returns the URL of the new resource in the Location header.")
+-    public void createHotel(@RequestBody Hotel hotel,
+-                                 HttpServletRequest request, HttpServletResponse response) {
+-        Hotel createdHotel = this.hotelService.createHotel(hotel);
+-        response.setHeader("Location", request.getRequestURL().append("/").append(createdHotel.getId()).toString());
+-    }
+-
+-    @RequestMapping(value = "",
+-            method = RequestMethod.GET,
+-            produces = {"application/json", "application/xml"})
+-    @ResponseStatus(HttpStatus.OK)
+-    @ApiOperation(value = "Get a paginated list of all hotels.",
+-                  notes = "The list is paginated. You can provide a page number (default 0) and a page size (default 100)")
+-    public
+-    @ResponseBody
+-    Page<Hotel> getAllHotel(@ApiParam(value = "The page number (zero-based)", required = true)
+-                                      @RequestParam(value = "page", required = true, defaultValue = DEFAULT_PAGE_NUM) Integer page,
+-                                      @ApiParam(value = "Tha page size", required = true)
+-                                      @RequestParam(value = "size", required = true, defaultValue = DEFAULT_PAGE_SIZE) Integer size,
+-                                      HttpServletRequest request, HttpServletResponse response) {
+-        return this.hotelService.getAllHotels(page, size);
+-    }
+-
+-    @RequestMapping(value = "/{id}",
+-            method = RequestMethod.GET,
+-            produces = {"application/json", "application/xml"})
+-    @ResponseStatus(HttpStatus.OK)
+-    @ApiOperation(value = "Get a single hotel.", notes = "You have to provide a valid hotel ID.")
+-    public
+-    @ResponseBody
+-    Hotel getHotel(@ApiParam(value = "The ID of the hotel.", required = true)
+-                             @PathVariable("id") Long id,
+-                             HttpServletRequest request, HttpServletResponse response) throws Exception {
+-        Hotel hotel = this.hotelService.getHotel(id);
+-        checkResourceFound(hotel);
+-        //todo: http://goo.gl/6iNAkz
+-        return hotel;
+-    }
+-
+-    @RequestMapping(value = "/{id}",
+-            method = RequestMethod.PUT,
+-            consumes = {"application/json", "application/xml"},
+-            produces = {"application/json", "application/xml"})
+-    @ResponseStatus(HttpStatus.NO_CONTENT)
+-    @ApiOperation(value = "Update a hotel resource.",
+-                  notes = "You have to provide a valid hotel ID in the URL and in the payload. The ID attribute can not be updated.")
+-    public void updateHotel(@ApiParam(value = "The ID of the existing hotel resource.", required = true)
+-                                 @PathVariable("id") Long id, @RequestBody Hotel hotel,
+-                                 HttpServletRequest request, HttpServletResponse response) {
+-        checkResourceFound(this.hotelService.getHotel(id));
+-        if (id != hotel.getId()) throw new DataFormatException("ID doesn't match!");
+-        this.hotelService.updateHotel(hotel);
+-    }
+-
+-    //todo: @ApiImplicitParams, @ApiResponses
+-    @RequestMapping(value = "/{id}",
+-            method = RequestMethod.DELETE,
+-            produces = {"application/json", "application/xml"})
+-    @ResponseStatus(HttpStatus.NO_CONTENT)
+-    @ApiOperation(value = "Delete a hotel resource.",
+-                  notes = "You have to provide a valid hotel ID in the URL. Once deleted the resource can not be recovered.")
+-    public void deleteHotel(@ApiParam(value = "The ID of the existing hotel resource.", required = true)
+-                                 @PathVariable("id") Long id, HttpServletRequest request,
+-                                 HttpServletResponse response) {
+-        checkResourceFound(this.hotelService.getHotel(id));
+-        this.hotelService.deleteHotel(id);
+-    }
+-}
+diff --git a/src/main/java/com/intuit_interview/example/dao/jpa/HotelRepository.java b/src/main/java/com/intuit_interview/example/dao/jpa/HotelRepository.java
+deleted file mode 100644
+index 0399661..0000000
+--- a/src/main/java/com/intuit_interview/example/dao/jpa/HotelRepository.java
++++ /dev/null
+@@ -1,14 +0,0 @@
+-package com.intuit_interview.example.dao.jpa;
+-
+-import com.intuit_interview.example.domain.Hotel;
+-import org.springframework.data.domain.Page;
+-import org.springframework.data.domain.Pageable;
+-import org.springframework.data.repository.PagingAndSortingRepository;
+-
+-/**
+- * Repository can be used to delegate CRUD operations against the data source: http://goo.gl/P1J8QH
+- */
+-public interface HotelRepository extends PagingAndSortingRepository<Hotel, Long> {
+-    Hotel findHotelByCity(String city);
+-    Page findAll(Pageable pageable);
+-}
+diff --git a/src/main/java/com/intuit_interview/example/domain/Hotel.java b/src/main/java/com/intuit_interview/example/domain/Hotel.java
+deleted file mode 100644
+index faa540b..0000000
+--- a/src/main/java/com/intuit_interview/example/domain/Hotel.java
++++ /dev/null
+@@ -1,91 +0,0 @@
+-package com.intuit_interview.example.domain;
+-
+-import javax.persistence.*;
+-import javax.xml.bind.annotation.*;
+-
+-/*
+- * a simple domain entity doubling as a DTO
+- */
+-@Entity
+-@Table(name = "hotel")
+-@XmlRootElement
+-@XmlAccessorType(XmlAccessType.FIELD)
+-public class Hotel {
+-
+-    @Id
+-    @GeneratedValue()
+-    private long id;
+-
+-    @Column(nullable = false)
+-    private String name;
+-
+-    @Column()
+-    private String description;
+-
+-    @Column()
+-    String city;
+-
+-    @Column()
+-    private int rating;
+-
+-    public Hotel() {
+-    }
+-
+-    public Hotel(String name, String description, int rating) {
+-        this.name = name;
+-        this.description = description;
+-        this.rating = rating;
+-    }
+-
+-    public long getId() {
+-        return this.id;
+-    }
+-
+-    // for tests ONLY
+-    public void setId(long id) {
+-        this.id = id;
+-    }
+-
+-    public String getName() {
+-        return name;
+-    }
+-
+-    public void setName(String name) {
+-        this.name = name;
+-    }
+-
+-    public String getDescription() {
+-        return description;
+-    }
+-
+-    public void setDescription(String description) {
+-        this.description = description;
+-    }
+-
+-    public int getRating() {
+-        return rating;
+-    }
+-
+-    public void setRating(int rating) {
+-        this.rating = rating;
+-    }
+-
+-    public String getCity() {
+-        return city;
+-    }
+-
+-    public void setCity(String city) {
+-        this.city = city;
+-    }
+-
+-    @Override
+-    public String toString() {
+-        return "Hotel {" +
+-                "id=" + id +
+-                ", name='" + name + '\'' +
+-                ", description='" + description + '\'' +
+-                ", city='" + city + '\'' +
+-                ", rating=" + rating +
+-                '}';
+-    }
+-}
+diff --git a/src/main/java/com/intuit_interview/example/service/HotelService.java b/src/main/java/com/intuit_interview/example/service/HotelService.java
+deleted file mode 100644
+index f454eca..0000000
+--- a/src/main/java/com/intuit_interview/example/service/HotelService.java
++++ /dev/null
+@@ -1,59 +0,0 @@
+-package com.intuit_interview.example.service;
+-
+-import com.intuit_interview.example.domain.Hotel;
+-import com.intuit_interview.example.dao.jpa.HotelRepository;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-import org.springframework.beans.factory.annotation.Autowired;
+-import org.springframework.boot.actuate.metrics.CounterService;
+-import org.springframework.boot.actuate.metrics.GaugeService;
+-import org.springframework.data.domain.Page;
+-import org.springframework.data.domain.PageRequest;
+-import org.springframework.stereotype.Service;
+-
+-/*
+- * Sample service to demonstrate what the API would use to get things done
+- */
+-@Service
+-public class HotelService {
+-
+-    private static final Logger log = LoggerFactory.getLogger(HotelService.class);
+-
+-    @Autowired
+-    private HotelRepository hotelRepository;
+-
+-    @Autowired
+-    CounterService counterService;
+-
+-    @Autowired
+-    GaugeService gaugeService;
+-
+-    public HotelService() {
+-    }
+-
+-    public Hotel createHotel(Hotel hotel) {
+-        return hotelRepository.save(hotel);
+-    }
+-
+-    public Hotel getHotel(long id) {
+-        return hotelRepository.findOne(id);
+-    }
+-
+-    public void updateHotel(Hotel hotel) {
+-        hotelRepository.save(hotel);
+-    }
+-
+-    public void deleteHotel(Long id) {
+-        hotelRepository.delete(id);
+-    }
+-
+-    //http://goo.gl/7fxvVf
+-    public Page<Hotel> getAllHotels(Integer page, Integer size) {
+-        Page pageOfHotels = hotelRepository.findAll(new PageRequest(page, size));
+-        // example of adding to the /metrics
+-        if (size > 50) {
+-            counterService.increment("Khoubyari.HotelService.getAll.largePayload");
+-        }
+-        return pageOfHotels;
+-    }
+-}
+diff --git a/src/main/java/com/intuit_interview/example/service/HotelServiceEvent.java b/src/main/java/com/intuit_interview/example/service/HotelServiceEvent.java
+deleted file mode 100644
+index dc33a3e..0000000
+--- a/src/main/java/com/intuit_interview/example/service/HotelServiceEvent.java
++++ /dev/null
+@@ -1,18 +0,0 @@
+-package com.intuit_interview.example.service;
+-
+-import org.springframework.context.ApplicationEvent;
+-
+-/**
+- * This is an optional class used in publishing application events.
+- * This can be used to inject events into the Spring Boot audit management endpoint.
+- */
+-public class HotelServiceEvent extends ApplicationEvent {
+-
+-    public HotelServiceEvent(Object source) {
+-        super(source);
+-    }
+-
+-    public String toString() {
+-        return "My HotelService Event";
+-    }
+-}
+\ No newline at end of file
+diff --git a/src/main/java/com/intuit_interview/example/service/HotelServiceHealth.java b/src/main/java/com/intuit_interview/example/service/HotelServiceHealth.java
+deleted file mode 100644
+index 3199ffa..0000000
+--- a/src/main/java/com/intuit_interview/example/service/HotelServiceHealth.java
++++ /dev/null
+@@ -1,25 +0,0 @@
+-package com.intuit_interview.example.service;
+-
+-
+-import org.springframework.beans.factory.annotation.Autowired;
+-import org.springframework.boot.actuate.health.Health;
+-import org.springframework.boot.actuate.health.HealthIndicator;
+-import org.springframework.stereotype.Component;
+-
+-/**
+- * This is an optional class used to inject application specific health check
+- * into the Spring Boot health management endpoint.
+- */
+-@Component
+-public class HotelServiceHealth implements HealthIndicator {
+-
+-    @Autowired
+-    private ServiceProperties configuration;
+-
+-    // extend this to create an application-specific health check according to http://goo.gl/vt8I7O
+-    @Override
+-    public Health health() {
+-        return Health.up().withDetail("details", "{ 'internals' : 'getting close to limit', 'profile' : '" + this.configuration.getName() + "' }").status("itsok!").build();
+-    }
+-
+-}
+diff --git a/src/main/resources/application.yml b/src/main/resources/application.yml
+index 7623baf..51da6f8 100644
+--- a/src/main/resources/application.yml
++++ b/src/main/resources/application.yml
+@@ -35,7 +35,7 @@ info:
+     description: ${project.description}
+     version: ${project.version}
+ 
+-hotel.service:
++task.service:
+   name: 'default profile:'
+ ---
+ spring:
+@@ -47,11 +47,11 @@ spring:
+ spring.jpa:
+     hibernate.ddl-auto: create-drop
+ 
+-hotel.service:
++task.service:
+   name: 'test profile:'
+ 
+ logging:
+   file: boot_example.log
+   org.hibernate: INFO
+ 
+- 
+\ No newline at end of file
++ 
+diff --git a/src/test/java/com/intuit_interview/example/test/UserControllerTest.java b/src/test/java/com/dhawan/example/test/UserControllerTest.java
+similarity index 95%
+rename from src/test/java/com/intuit_interview/example/test/UserControllerTest.java
+rename to src/test/java/com/dhawan/example/test/UserControllerTest.java
+index 034ba4b..668e86b 100644
+--- a/src/test/java/com/intuit_interview/example/test/UserControllerTest.java
++++ b/src/test/java/com/dhawan/example/test/UserControllerTest.java
+@@ -1,10 +1,10 @@
+-package com.intuit_interview.example.test;
++package com.dhawan.example.test;
+ 
+ import com.fasterxml.jackson.databind.ObjectMapper;
+-import com.intuit_interview.example.Application;
+-import com.intuit_interview.example.api.rest.UserController;
+-import com.intuit_interview.example.domain.Task;
+-import com.intuit_interview.example.domain.User;
++import com.dhawan.example.Application;
++import com.dhawan.example.api.rest.UserController;
++import com.dhawan.example.domain.Task;
++import com.dhawan.example.domain.User;
+ import org.junit.Before;
+ import org.junit.Test;
+ import org.junit.runner.RunWith;
+@@ -21,8 +21,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+ import org.springframework.web.context.WebApplicationContext;
+ 
+ import java.util.HashSet;
+-import java.util.stream.Collector;
+-import java.util.stream.Collectors;
+ 
+ import static org.hamcrest.Matchers.is;
+ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+diff --git a/src/test/java/com/intuit_interview/example/test/HotelControllerTest.java b/src/test/java/com/intuit_interview/example/test/HotelControllerTest.java
+deleted file mode 100644
+index b32b7ea..0000000
+--- a/src/test/java/com/intuit_interview/example/test/HotelControllerTest.java
++++ /dev/null
+@@ -1,185 +0,0 @@
+-package com.intuit_interview.example.test;
+-
+-/**
+- * Uses JsonPath: http://goo.gl/nwXpb, Hamcrest and MockMVC
+- */
+-
+-import com.fasterxml.jackson.databind.ObjectMapper;
+-import com.intuit_interview.example.Application;
+-import com.intuit_interview.example.api.rest.HotelController;
+-import com.intuit_interview.example.domain.Hotel;
+-import org.junit.Before;
+-import org.junit.Test;
+-import org.junit.runner.RunWith;
+-import org.mockito.InjectMocks;
+-import org.mockito.MockitoAnnotations;
+-import org.springframework.beans.factory.annotation.Autowired;
+-import org.springframework.boot.test.context.SpringBootTest;
+-import org.springframework.http.MediaType;
+-import org.springframework.test.context.ActiveProfiles;
+-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+-import org.springframework.test.web.servlet.MockMvc;
+-import org.springframework.test.web.servlet.MvcResult;
+-import org.springframework.test.web.servlet.ResultMatcher;
+-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+-import org.springframework.web.context.WebApplicationContext;
+-
+-import java.util.Random;
+-import java.util.regex.Pattern;
+-
+-import static org.hamcrest.Matchers.hasSize;
+-import static org.hamcrest.Matchers.is;
+-import static org.junit.Assert.assertTrue;
+-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+-
+-@RunWith(SpringJUnit4ClassRunner.class)
+-@SpringBootTest(classes = Application.class)
+-@ActiveProfiles("test")
+-public class HotelControllerTest {
+-
+-    private static final String RESOURCE_LOCATION_PATTERN = "http://localhost/example/v1/hotels/[0-9]+";
+-
+-    @InjectMocks
+-    HotelController controller;
+-
+-    @Autowired
+-    WebApplicationContext context;
+-
+-    private MockMvc mvc;
+-
+-    @Before
+-    public void initTests() {
+-        MockitoAnnotations.initMocks(this);
+-        mvc = MockMvcBuilders.webAppContextSetup(context).build();
+-    }
+-
+-    //@Test
+-    public void shouldHaveEmptyDB() throws Exception {
+-        mvc.perform(get("/example/v1/hotels")
+-                .accept(MediaType.APPLICATION_JSON))
+-                .andExpect(status().isOk())
+-                .andExpect(jsonPath("$", hasSize(0)));
+-    }
+-
+-    @Test
+-    public void shouldCreateRetrieveDelete() throws Exception {
+-        Hotel r1 = mockHotel("shouldCreateRetrieveDelete");
+-        byte[] r1Json = toJson(r1);
+-
+-        //CREATE
+-        MvcResult result = mvc.perform(post("/example/v1/hotels")
+-                .content(r1Json)
+-                .contentType(MediaType.APPLICATION_JSON)
+-                .accept(MediaType.APPLICATION_JSON))
+-                .andExpect(status().isCreated())
+-                .andExpect(redirectedUrlPattern(RESOURCE_LOCATION_PATTERN))
+-                .andReturn();
+-        long id = getResourceIdFromUrl(result.getResponse().getRedirectedUrl());
+-
+-        //RETRIEVE
+-        mvc.perform(get("/example/v1/hotels/" + id)
+-                .accept(MediaType.APPLICATION_JSON))
+-                .andExpect(status().isOk())
+-                .andExpect(jsonPath("$.id", is((int) id)))
+-                .andExpect(jsonPath("$.name", is(r1.getName())))
+-                .andExpect(jsonPath("$.city", is(r1.getCity())))
+-                .andExpect(jsonPath("$.description", is(r1.getDescription())))
+-                .andExpect(jsonPath("$.rating", is(r1.getRating())));
+-
+-        //DELETE
+-        mvc.perform(delete("/example/v1/hotels/" + id))
+-                .andExpect(status().isNoContent());
+-
+-        //RETRIEVE should fail
+-        mvc.perform(get("/example/v1/hotels/" + id)
+-                .accept(MediaType.APPLICATION_JSON))
+-                .andExpect(status().isNotFound());
+-
+-        //todo: you can test the 404 error body too.
+-
+-        /*
+-        JSONAssert.assertEquals(
+-          "{foo: 'bar', baz: 'qux'}",
+-          JSONObject.fromObject("{foo: 'bar', baz: 'xyzzy'}"));
+-         */
+-    }
+-
+-    @Test
+-    public void shouldCreateAndUpdateAndDelete() throws Exception {
+-        Hotel r1 = mockHotel("shouldCreateAndUpdate");
+-        byte[] r1Json = toJson(r1);
+-        //CREATE
+-        MvcResult result = mvc.perform(post("/example/v1/hotels")
+-                .content(r1Json)
+-                .contentType(MediaType.APPLICATION_JSON)
+-                .accept(MediaType.APPLICATION_JSON))
+-                .andExpect(status().isCreated())
+-                .andExpect(redirectedUrlPattern(RESOURCE_LOCATION_PATTERN))
+-                .andReturn();
+-        long id = getResourceIdFromUrl(result.getResponse().getRedirectedUrl());
+-
+-        Hotel r2 = mockHotel("shouldCreateAndUpdate2");
+-        r2.setId(id);
+-        byte[] r2Json = toJson(r2);
+-
+-        //UPDATE
+-        result = mvc.perform(put("/example/v1/hotels/" + id)
+-                .content(r2Json)
+-                .contentType(MediaType.APPLICATION_JSON)
+-                .accept(MediaType.APPLICATION_JSON))
+-                .andExpect(status().isNoContent())
+-                .andReturn();
+-
+-        //RETRIEVE updated
+-        mvc.perform(get("/example/v1/hotels/" + id)
+-                .accept(MediaType.APPLICATION_JSON))
+-                .andExpect(status().isOk())
+-                .andExpect(jsonPath("$.id", is((int) id)))
+-                .andExpect(jsonPath("$.name", is(r2.getName())))
+-                .andExpect(jsonPath("$.city", is(r2.getCity())))
+-                .andExpect(jsonPath("$.description", is(r2.getDescription())))
+-                .andExpect(jsonPath("$.rating", is(r2.getRating())));
+-
+-        //DELETE
+-        mvc.perform(delete("/example/v1/hotels/" + id))
+-                .andExpect(status().isNoContent());
+-    }
+-
+-
+-    /*
+-     ******************************
+-     */
+-
+-    private long getResourceIdFromUrl(String locationUrl) {
+-        String[] parts = locationUrl.split("/");
+-        return Long.valueOf(parts[parts.length - 1]);
+-    }
+-
+-
+-    private Hotel mockHotel(String prefix) {
+-        Hotel r = new Hotel();
+-        r.setCity(prefix + "_city");
+-        r.setDescription(prefix + "_description");
+-        r.setName(prefix + "_name");
+-        r.setRating(new Random().nextInt(6));
+-        return r;
+-    }
+-
+-    private byte[] toJson(Object r) throws Exception {
+-        ObjectMapper map = new ObjectMapper();
+-        return map.writeValueAsString(r).getBytes();
+-    }
+-
+-    // match redirect header URL (aka Location header)
+-    private static ResultMatcher redirectedUrlPattern(final String expectedUrlPattern) {
+-        return new ResultMatcher() {
+-            public void match(MvcResult result) {
+-                Pattern pattern = Pattern.compile("\\A" + expectedUrlPattern + "\\z");
+-                assertTrue(pattern.matcher(result.getResponse().getRedirectedUrl()).find());
+-            }
+-        };
+-    }
+-
+-}

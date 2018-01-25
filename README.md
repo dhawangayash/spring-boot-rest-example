@@ -1,6 +1,6 @@
-# Spring Boot "Microservice" Example Project
+#Task creation example using  Spring Boot "Microservice" Example Project
 
-This is a sample Java / Maven / Spring Boot (version 1.5.6) application that can be used as a starter for creating a microservice complete with built-in health check, metrics and much more. I hope it helps you.
+This uses Java / Maven / Spring Boot (version 1.5.6) application which is a starter for creating a microservice complete with built-in health check, metrics and much more.
 
 ## How to Run 
 
@@ -8,12 +8,10 @@ This application is packaged as a war which has Tomcat 8 embedded. No Tomcat or 
 
 * Clone this repository 
 * Make sure you are using JDK 1.8 and Maven 3.x
-* You can build the project and run the tests by running ```mvn clean package```
-* Once successfully built, you can run the service by one of these two methods:
+* You can build the project and run the tests by running ```mvn clean install -U```
+* Once successfully built, you can run the service by:
 ```
-        java -jar -Dspring.profiles.active=test target/spring-boot-rest-example-0.4.0.war
-or
-        mvn spring-boot:run -Drun.arguments="spring.profiles.active=test"
+java -jar -Dspring.profiles.active=test target/spring-boot-rest-example-0.4.0.war
 ```
 * Check the stdout or boot_example.log file to make sure no exceptions are thrown
 
@@ -24,56 +22,27 @@ Once the application runs you should see something like this
 2017-08-30 17:31:23.097  INFO 19387 --- [           main] com.khoubyari.example.Application        : Started Application in 22.285 seconds (JVM running for 23.032)
 ```
 
-## About the Service
-
-The service is just a simple hotel review REST service. It uses an in-memory database (H2) to store the data. You can also do with a relational database like MySQL or PostgreSQL. If your database connection properties work, you can call some REST endpoints defined in ```com.khoubyari.example.api.rest.hotelController``` on **port 8090**. (see below)
-
-More interestingly, you can start calling some of the operational endpoints (see full list below) like ```/metrics``` and ```/health``` (these are available on **port 8091**)
-
-You can use this sample service to understand the conventions and configurations that allow you to create a DB-backed RESTful service. Once you understand and get comfortable with the sample app you can add your own services following the same patterns as the sample service.
- 
-Here is what this little application demonstrates: 
-
-* Full integration with the latest **Spring** Framework: inversion of control, dependency injection, etc.
-* Packaging as a single war with embedded container (tomcat 8): No need to install a container separately on the host just run using the ``java -jar`` command
-* Demonstrates how to set up healthcheck, metrics, info, environment, etc. endpoints automatically on a configured port. Inject your own health / metrics info with a few lines of code.
-* Writing a RESTful service using annotation: supports both XML and JSON request / response; simply use desired ``Accept`` header in your request
-* Exception mapping from application exceptions to the right HTTP response with exception details in the body
-* *Spring Data* Integration with JPA/Hibernate with just a few lines of configuration and familiar annotations. 
-* Automatic CRUD functionality against the data source using Spring *Repository* pattern
-* Demonstrates MockMVC test framework with associated libraries
-* All APIs are "self-documented" by Swagger2 using annotations 
-
-Here are some endpoints you can call:
-
-### Get information about system health, configurations, etc.
+### Create a task for a userId
 
 ```
-http://localhost:8091/env
-http://localhost:8091/health
-http://localhost:8091/info
-http://localhost:8091/metrics
-```
-
-### Create a hotel resource
-
-```
-POST /example/v1/hotels
+POST /taskmanager/v1/tasks
 Accept: application/json
 Content-Type: application/json
 
 {
-"name" : "Beds R Us",
-"description" : "Very basic, small rooms but clean",
-"city" : "Santa Ana",
-"rating" : 2
+"dueTime" : "string",
+"id" : 0,
+"reminderTime" : "string",
+"taskId" : 0,
+"taskObjectStoreURL": "string",
+"user_id": 0
 }
 
 RESPONSE: HTTP 201 (Created)
 Location header: http://localhost:8090/example/v1/hotels/1
 ```
 
-### Retrieve a paginated list of hotels
+### Retrieve a paginated list of tasks
 
 ```
 http://localhost:8090/example/v1/hotels?page=0&size=10
@@ -82,7 +51,7 @@ Response: HTTP 200
 Content: paginated list 
 ```
 
-### Update a hotel resource
+### Update a task resource
 
 ```
 PUT /example/v1/hotels/1
@@ -160,7 +129,7 @@ spring:
       ddl-auto: update # todo: in non-dev environments, comment this out:
 
 
-hotel.service:
+task.service:
   name: 'test profile:'
 ```
 
@@ -171,21 +140,3 @@ hotel.service:
 or
         mvn spring-boot:run -Drun.arguments="spring.profiles.active=mysql"
 ```
-
-# Attaching to the app remotely from your IDE
-
-Run the service with these command line options:
-
-```
-mvn spring-boot:run -Drun.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
-or
-java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -Dspring.profiles.active=test -Ddebug -jar target/spring-boot-rest-example-0.4.0.war
-```
-and then you can connect to it remotely using your IDE. For example, from IntelliJ You have to add remote debug configuration: Edit configuration -> Remote.
-
-# Questions and Comments: khoubyari@gmail.com
-
-
-
-
-
