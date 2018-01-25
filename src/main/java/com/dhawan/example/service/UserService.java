@@ -9,6 +9,8 @@ import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.boot.actuate.metrics.GaugeService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
+
 
 /**
  * Created by dhawangayash on 1/21/18.
@@ -30,6 +32,7 @@ public class UserService {
     public UserService() {}
 
     public User createUser(User user) {
+        user.setTasks(new HashSet<>());
         return userRepository.save(user);
     }
 
