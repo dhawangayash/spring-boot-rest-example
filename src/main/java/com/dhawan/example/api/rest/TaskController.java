@@ -2,8 +2,11 @@ package com.dhawan.example.api.rest;
 
 
 import com.dhawan.example.domain.Task;
+import com.dhawan.example.domain.User;
 import com.dhawan.example.exception.DataFormatException;
+import com.dhawan.example.exception.NoSuchUserException;
 import com.dhawan.example.service.TaskService;
+import com.dhawan.example.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -28,6 +31,9 @@ public class TaskController extends AbstractRestHandler {
     @Autowired
     private TaskService taskService;
 
+    @Autowired
+    private UserService userService;
+
     @RequestMapping(value = "",
             method = RequestMethod.POST,
             consumes = {"application/json", "application/xml"},
@@ -37,10 +43,20 @@ public class TaskController extends AbstractRestHandler {
             notes = "Returns the taskId as a URL resource")
     public void createTask(@RequestBody Task task,
                            HttpServletRequest req, HttpServletResponse res) {
-        Task createdTask = this.taskService.createTask(task);
-        res.setHeader("Location", req.getRequestURL().append("/").append(createdTask.getTaskId()).toString());
-    }
+//        try {
 
+            // get the user from User table
+            User user = userService.getUser(task.getUser_id());
+            checkUserFound(user);
+            Task createdTask = this.taskService.createTask(task);
+            res.setHeader("Location", req.getRequestURL().append("/").append(createdTask.getTaskId()).toString());
+//            res.setStatus(HttpStatus.CREATED.value());
+//        } catch (NoSuchUserException e) {
+//            res.setHeader("Errors", "invalid user id");
+//            res.setStatus(HttpStatus.BAD_REQUEST.value());
+//        }
+    }
+/*
     @RequestMapping(value = "",
             method = RequestMethod.GET,
             produces = {"application/json", "application/xml"})
@@ -56,7 +72,7 @@ public class TaskController extends AbstractRestHandler {
                        HttpServletRequest req, HttpServletResponse res)  throws Exception {
         return this.taskService.getAllTasks(page, size);
     }
-
+*/
     @RequestMapping(value = "/{id}",
             method = RequestMethod.GET,
             produces = {"application/json", "application/xml"})

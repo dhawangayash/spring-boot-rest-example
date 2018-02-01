@@ -2,6 +2,8 @@ package com.dhawan.example.service;
 
 import com.dhawan.example.dao.jpa.TaskRepository;
 import com.dhawan.example.domain.Task;
+import com.dhawan.example.domain.User;
+import com.dhawan.example.exception.NoSuchUserException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.metrics.CounterService;
@@ -47,6 +49,7 @@ public class TaskService {
         taskRepository.delete(id);
     }
 
+    /*
     public Page<Task> getAllTasks(Integer page, Integer size) {
         Page<Task> pageOne = taskRepository.findAll(new PageRequest(page, size));
 
@@ -54,5 +57,5 @@ public class TaskService {
             couterService.increment("taskrequest");
         }
         return pageOne;
-    }
+    }*/
 }

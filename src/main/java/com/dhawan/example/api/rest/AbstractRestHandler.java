@@ -3,10 +3,7 @@ package com.dhawan.example.api.rest;
 import com.dhawan.example.domain.RestErrorInfo;
 import com.dhawan.example.domain.Task;
 import com.dhawan.example.domain.User;
-import com.dhawan.example.exception.DataFormatException;
-import com.dhawan.example.exception.PhoneNumberNotValidException;
-import com.dhawan.example.exception.ResourceNotFoundException;
-import com.dhawan.example.exception.UserEmailNotValidException;
+import com.dhawan.example.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -68,6 +65,17 @@ public abstract class AbstractRestHandler implements ApplicationEventPublisherAw
         return new RestErrorInfo(ex, "Sorry I couldn't find it.");
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(NoSuchUserException.class)
+    public
+    @ResponseBody
+    RestErrorInfo handleNosuchUserException(NoSuchUserException ex, WebRequest request, HttpServletResponse response) {
+        log.info("NoSuchUsertoAddTask handler:" + ex.getMessage());
+
+        return new RestErrorInfo(ex, "Sorry there is no such user.");
+    }
+
+
     @Override
     public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         this.eventPublisher = applicationEventPublisher;
@@ -84,6 +92,14 @@ public abstract class AbstractRestHandler implements ApplicationEventPublisherAw
         if (resource instanceof Task)
             isValidTask((Task)resource);
 
+        return resource;
+    }
+
+
+    public static User checkUserFound(final User resource) {
+        if (resource == null)
+            throw new NoSuchUserException("User Not Found for the task");
+        isValidUser(resource);
         return resource;
     }
 
